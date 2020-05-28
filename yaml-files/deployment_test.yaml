@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+  labels:
+    app: test
+spec:
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      containers:
+      - name: ubuntu
+        image: bitnami/kubectl:latest
+        command: [ "/scripts/configmap.sh" , "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: data
+          mountPath: /data
+          readOnly: false
+        - mountPath: scripts
+          name: get-deployment
+      serviceAccountName: default
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName:  storage-pvc
+      - name: get-deployment
+        configMap:
+          defaultMode: 0744
+          name: get-deployment
+
+

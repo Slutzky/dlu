@@ -1,0 +1,35 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: get-deployments
+  namespace: dev
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: default
+          containers:
+            - name: reboot
+              image: bitnami/kubectl:1.15.1
+              imagePullPolicy: IfNotPresent
+              command:
+                - 'sh'
+                - '-c'
+                - '/get-deployment.sh'
+              volumeMounts:
+                - mountPath: /get-deployment.sh
+                  name: get-deployment
+                  subPath: get-deployment.sh
+                - mountPath: /data
+                  name: storage
+          restartPolicy: Never
+          volumes:
+           - name: get-deployment
+             configMap:
+               defaultMode: 0777
+               name: get-deployment
+           - name: storage
+             persistentVolumeClaim:
+               claimName: storage-pvc
